@@ -2,11 +2,13 @@
 
 A [Dojo](https://github.com/ai-traders/dojo) docker image featuring:
  * [gocd-cli](https://github.com/gocd-contrib/gocd-cli)
- * [gocd yaml config plugin](https://github.com/tomzo/gocd-yaml-config-plugin)
- * [gocd json config plugin](https://github.com/tomzo/gocd-json-config-plugin)
- * [gocd groovy config plugin](https://github.com/gocd-contrib/gocd-groovy-dsl-config-plugin)
+ * [gocd yaml config plugin](https://github.com/tomzo/gocd-yaml-config-plugin); image tag `kudulab/gocd-cli-dojo:yaml-<plugin-version>`
+ * [gocd json config plugin](https://github.com/tomzo/gocd-json-config-plugin); image tag `kudulab/gocd-cli-dojo:json-<plugin-version>`
+ * [gocd groovy config plugin](https://github.com/gocd-contrib/gocd-groovy-dsl-config-plugin); image tag `kudulab/gocd-cli-dojo:groovy-<plugin-version>`
 
 The primary use case of this image is to help with validating GoCD config repos before pushing changes to the source control.
+
+Images are pushed to dockerhub at [kudulab/gocd-cli-dojo](https://hub.docker.com/r/kudulab/gocd-cli-dojo).
 
 ## Setup
 
@@ -26,7 +28,7 @@ sudo chmod +x /usr/local/bin/dojo
 1. [Configure access](#configuration) to the GoCD server.
 1. The quickest way to start is to run the docker container
 ```bash
-dojo --image=kudulab/gocd-cli-dojo
+dojo --image=kudulab/gocd-cli-dojo:yaml
 ```
 1. Then you can execute `gocd` CLI, for example to validate GoCD configuration files
 ```

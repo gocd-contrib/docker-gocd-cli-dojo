@@ -31,6 +31,8 @@ image_registry="dockerhub"
 image_dir="./image"
 imagerc_filename="imagerc"
 
+GOCD_GROOVY_VERSION="0.7.5-66"
+
 function docker_login {
   vault_user_path=$USER
   if [ $vault_user_path == "go" ]; then
@@ -38,6 +40,16 @@ function docker_login {
   fi
   dockerhub_user=$(vault read -field=user secret/$vault_user_path/dockerhub)
   vault read -field=password secret/$vault_user_path/dockerhub | docker login --username $dockerhub_user --password-stdin
+}
+
+function download_groovy_plugin {
+  mkdir -p image/libs/
+  wget -O image/libs/gocd-groovy-dsl-config-plugin-${GOCD_GROOVY_VERSION}.jar https://github.com/gocd-contrib/gocd-groovy-dsl-config-plugin/releases/download/v${GOCD_GROOVY_VERSION}/gocd-groovy-dsl-config-plugin-${GOCD_GROOVY_VERSION}.jar
+}
+
+function get_plugin_version {
+  PLUGIN_VERSION=$(ls image/libs/$1-config-plugin-*.jar | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+  echo $PLUGIN_VERSION
 }
 
 command="$1"
@@ -51,13 +63,22 @@ case "${command}" in
       releaser::verify_release_ready
       ;;
   build_local)
-      image_tag=$(git rev-parse HEAD)
+      if [ -z "$2" ]; then
+        echo "Must specify plugin to build as argument: yaml, json, groovy"
+        exit 1
+      elif [ $2 == "groovy" ]; then
+        download_groovy_plugin
+        PLUGIN_VERSION=${GOCD_GROOVY_VERSION}
+      else
+        PLUGIN_VERSION=$(get_plugin_version $2)
+      fi
+      image_tag=$2-$PLUGIN_VERSION-$(git rev-parse HEAD)
       # build image and push to a test registry
       docker_ops::docker_build "${image_dir}" "${imagerc_filename}" "${image_name}" "${image_tag}" "${image_registry}"
       ;;
   build)
       docker_login
-      ./tasks build_local
+      ./tasks build_local $2
       docker_ops::push "${image_dir}" "${imagerc_filename}"
       ;;
   itest)
@@ -82,15 +103,29 @@ case "${command}" in
       dojo -c ./Dojofile.example
       ;;
   release)
-      ./tasks verify_version
-      version=$(releaser::get_last_version_from_whole_changelog "${changelog_file}")
-      git tag "${version}" && git push origin "${version}"
+      releaser::conditional_release
       ;;
   publish)
       docker_login
+      if [ -z "$2" ]; then
+        echo "Must specify plugin as argument: yaml, json, groovy"
+        exit 1
+      elif [ $2 == "groovy" ]; then
+        PLUGIN_VERSION=${GOCD_GROOVY_VERSION}
+      else
+        PLUGIN_VERSION=$(get_plugin_version $2)
+      fi
       version=$(releaser::get_last_version_from_whole_changelog "${changelog_file}")
       docker_ops::ensure_pulled_image "${image_dir}" "${imagerc_filename}"
-      docker_ops::retag_push "${image_dir}"  "${imagerc_filename}" "${image_name}" "${version}" "${image_registry}"
+
+      image_tag=$2-$PLUGIN_VERSION-$version
+      docker_ops::retag_push "${image_dir}"  "${imagerc_filename}" "${image_name}" "${image_tag}" "${image_registry}"
+
+      image_tag=$2-$PLUGIN_VERSION
+      docker_ops::retag_push "${image_dir}"  "${imagerc_filename}" "${image_name}" "${image_tag}" "${image_registry}"
+
+      image_tag=$2
+      docker_ops::retag_push "${image_dir}"  "${imagerc_filename}" "${image_name}" "${image_tag}" "${image_registry}"
       ;;
   generate_vault_token)
       vault_token=$(vault token create -orphan -ttl=48h -policy=gocd -field token -metadata gocd_renew=true)

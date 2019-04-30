@@ -21,12 +21,10 @@ RUN chown dojo:dojo /home/dojo/.profile /home/dojo/.bashrc
 # Optional scripts to run on container start
 COPY etc_dojo.d/scripts/* /etc/dojo.d/scripts/
 
-COPY ./libs/ /home/dojo/.gocd/plugins
-ENV GOCD_GROOVY_VERSION=0.7.5-66
-ADD https://github.com/gocd-contrib/gocd-groovy-dsl-config-plugin/releases/download/v${GOCD_GROOVY_VERSION}/gocd-groovy-dsl-config-plugin-${GOCD_GROOVY_VERSION}.jar /home/dojo/.gocd/plugins/
-RUN chown -R dojo:dojo /home/dojo/.gocd/
-
 COPY gocd /usr/bin/gocd
+
+COPY ./libs/ /home/dojo/.gocd/plugins
+RUN chown -R dojo:dojo /home/dojo/.gocd/
 
 ARG this_image_tag_arg
 ENV this_image_tag=${this_image_tag_arg}
