@@ -1,0 +1,56 @@
+---
+format_version: 3
+pipelines:
+  docker-gocd-cli-dojo:
+    group: java
+    label_template: "${git[:8]}"
+    materials:
+      git:
+        type: configrepo
+      cli:
+        pipeline: gocd-cli
+        stage: build
+      yaml-plugin:
+        pipeline: gocd-yaml-plugin
+        stage: release
+      json-plugin:
+        pipeline: gocd-json-plugin
+        stage: release
+    secure_variables:
+      VAULT_TOKEN: "AES:6XuKhxByb4qBjifM5lpY9A==:p5G6gkGch052CiJ6zMZz7BRj+oS0RZ0n1s0Ciia7q5tkjFSzHa3q9sQSjFgtHyA5"
+    stages:
+      - build:
+          clean_workspace: true
+          jobs:
+            docker_image:
+              resources:
+                - docker_builder
+              artifacts:
+                - build:
+                    source: image/imagerc*
+                    destination:
+              tasks:
+                - fetch:
+                    pipeline: gocd-cli
+                    stage: build
+                    job: build
+                    source: gocd
+                    destination: image/
+                    is_file: true
+                - fetch:
+                    pipeline: gocd-yaml-plugin
+                    stage: build
+                    job: build
+                    source: build/libs
+                    destination: image/
+                - fetch:
+                    pipeline: gocd-json-plugin
+                    stage: build
+                    job: build
+                    source: build/libs
+                    destination: image/
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks build
