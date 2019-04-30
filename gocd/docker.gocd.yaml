@@ -178,3 +178,115 @@ pipelines:
                     arguments:
                       - -c
                       - ./tasks itest groovy
+# Release after all images are built and tested
+  docker-gocd-cli-dojo:
+    group: gocd
+    label_template: "${git[:8]}"
+    materials:
+      git:
+        type: configrepo
+      yaml:
+        pipeline: docker-gocd-cli-dojo.yaml
+        stage: test
+      json:
+        pipeline: docker-gocd-cli-dojo.json
+        stage: test
+      groovy:
+        pipeline: docker-gocd-cli-dojo.groovy
+        stage: test
+      yaml-plugin:
+        pipeline: gocd-yaml-plugin
+        stage: release
+      json-plugin:
+        pipeline: gocd-json-plugin
+        stage: release
+    secure_variables:
+      VAULT_TOKEN: "AES:6XuKhxByb4qBjifM5lpY9A==:p5G6gkGch052CiJ6zMZz7BRj+oS0RZ0n1s0Ciia7q5tkjFSzHa3q9sQSjFgtHyA5"
+    stages:
+      - release:
+          clean_workspace: true
+          jobs:
+            code:
+              resources:
+                - docker_builder
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks release
+      - publish:
+          clean_workspace: true
+          jobs:
+            yaml:
+              resources:
+                - docker_builder
+              artifacts:
+                - build:
+                    source: image/imagerc*
+                    destination:
+              tasks:
+                - fetch:
+                    pipeline: gocd-yaml-plugin
+                    stage: build
+                    job: build
+                    source: build/libs
+                    destination: image/
+                - fetch:
+                    pipeline: docker-gocd-cli-dojo.yaml
+                    stage: build
+                    job: docker_image
+                    source: imagerc.yaml
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks publish yaml
+            json:
+              resources:
+                - docker_builder
+              artifacts:
+                - build:
+                    source: image/imagerc*
+                    destination:
+              tasks:
+                - fetch:
+                    pipeline: gocd-json-plugin
+                    stage: build
+                    job: build
+                    source: build/libs
+                    destination: image/
+                - fetch:
+                    pipeline: docker-gocd-cli-dojo.json
+                    stage: build
+                    job: docker_image
+                    source: imagerc.json
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks publish json
+            groovy:
+              resources:
+                - docker_builder
+              artifacts:
+                - build:
+                    source: image/imagerc*
+                    destination:
+              tasks:
+                - fetch:
+                    pipeline: docker-gocd-cli-dojo.groovy
+                    stage: build
+                    job: docker_image
+                    source: imagerc.groovy
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks publish groovy
