@@ -2,3 +2,7 @@
 /ops/
 /image/gocd
 /image/libs/
+/test/integration/test_ide_work/yaml-example/
+/Dojofile-*
+/test/integration/test_dojo_work/yaml-example/
+/test/integration/test_dojo_work/json-example/

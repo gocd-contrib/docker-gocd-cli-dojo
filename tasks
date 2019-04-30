@@ -29,7 +29,6 @@ source $SECRET_OPS_FILE
 image_name="kudulab/gocd-cli-dojo"
 image_registry="dockerhub"
 image_dir="./image"
-imagerc_filename="imagerc"
 
 GOCD_GROOVY_VERSION="0.7.5-66"
 
@@ -72,6 +71,7 @@ case "${command}" in
       else
         PLUGIN_VERSION=$(get_plugin_version $2)
       fi
+      imagerc_filename="imagerc.$2"
       image_tag=$2-$PLUGIN_VERSION-$(git rev-parse HEAD)
       # build image and push to a test registry
       docker_ops::docker_build "${image_dir}" "${imagerc_filename}" "${image_name}" "${image_tag}" "${image_registry}"
@@ -82,25 +82,32 @@ case "${command}" in
       docker_ops::push "${image_dir}" "${imagerc_filename}"
       ;;
   itest)
+      if [ -z "$2" ]; then
+        echo "Must specify plugin to build as argument: yaml, json, groovy"
+        exit 1
+      fi
+      plugin=$2
+      imagerc_filename="imagerc.$plugin"
       docker_ops::ensure_pulled_image "${image_dir}" "${imagerc_filename}"
       echo "Testing image: ${KUDU_DOCKER_IMAGE_URL}"
-      echo "DOJO_DOCKER_IMAGE=\"${KUDU_DOCKER_IMAGE_URL}\"" > ./Dojofile.to_be_tested
-      echo "DOJO_IDENTITY_OUTER=\"$(pwd)/test/integration/identities/full\"" >> ./Dojofile.to_be_tested
-      echo "DOJO_WORK_OUTER=$(pwd)/test/integration/test_dojo_work" >> ./Dojofile.to_be_tested
-      time bats "$(pwd)/test/integration/full/bats"
-
-      echo "DOJO_DOCKER_IMAGE=\"${KUDU_DOCKER_IMAGE_URL}\"" > ./Dojofile.to_be_tested
-      echo "DOJO_IDENTITY_OUTER=\"$(pwd)/test/integration/identities/empty\"" >> ./Dojofile.to_be_tested
-      echo "DOJO_WORK_OUTER=$(pwd)/test/integration/test_dojo_work" >> ./Dojofile.to_be_tested
-      time bats "$(pwd)/test/integration/empty/bats"
+      echo "DOJO_DOCKER_IMAGE=\"${KUDU_DOCKER_IMAGE_URL}\"" > ./Dojofile-$plugin
+      echo "DOJO_IDENTITY_OUTER=\"$(pwd)/test/integration/identities/full\"" >> ./Dojofile-$plugin
+      echo "DOJO_WORK_OUTER=$(pwd)/test/integration/test_dojo_work" >> ./Dojofile-$plugin
+      time bats "$(pwd)/test/integration/$plugin/bats"
       ;;
   example)
+      if [ -z "$2" ]; then
+        echo "Must specify plugin to build as argument: yaml, json, groovy"
+        exit 1
+      fi
+      plugin=$2
+      imagerc_filename="imagerc.$plugin"
       docker_ops::ensure_pulled_image "${image_dir}" "${imagerc_filename}"
       echo "Testing image: ${KUDU_DOCKER_IMAGE_URL}"
-      echo "DOJO_DOCKER_IMAGE=\"${KUDU_DOCKER_IMAGE_URL}\"" > ./Dojofile.example
-      echo "DOJO_IDENTITY_OUTER=\"$(pwd)/test/integration/identities/full\"" >> ./Dojofile.example
-      echo "DOJO_WORK_OUTER=$(pwd)/test/integration/test_dojo_work" >> ./Dojofile.example
-      dojo -c ./Dojofile.example
+      echo "DOJO_DOCKER_IMAGE=\"${KUDU_DOCKER_IMAGE_URL}\"" > ./Dojofile-$plugin
+      echo "DOJO_IDENTITY_OUTER=\"$(pwd)/test/integration/identities/full\"" >> ./Dojofile-$plugin
+      echo "DOJO_WORK_OUTER=$(pwd)/test/integration/test_dojo_work" >> ./Dojofile-$plugin
+      dojo -c ./Dojofile-$plugin
       ;;
   release)
       releaser::conditional_release
@@ -115,7 +122,9 @@ case "${command}" in
       else
         PLUGIN_VERSION=$(get_plugin_version $2)
       fi
+      plugin=$2
       version=$(releaser::get_last_version_from_whole_changelog "${changelog_file}")
+      imagerc_filename="imagerc.$plugin"
       docker_ops::ensure_pulled_image "${image_dir}" "${imagerc_filename}"
 
       image_tag=$2-$PLUGIN_VERSION-$version

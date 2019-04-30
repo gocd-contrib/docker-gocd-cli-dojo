@@ -30,7 +30,7 @@ sudo chmod +x /usr/local/bin/dojo
 ```bash
 dojo --image=kudulab/gocd-cli-dojo:yaml
 ```
-1. Then you can execute `gocd` CLI, for example to validate GoCD configuration files
+Then you can execute `gocd` CLI, for example to validate GoCD configuration files
 ```
 gocd configrepo preflight -r my-repo-id --yaml ci.gocd.yaml
 ```

@@ -1,0 +1,7 @@
+auth:
+  password: secret
+  type: basic
+  user: my_gocd_username
+config_version: 1
+server:
+  url: http://go.mydomain.com/go

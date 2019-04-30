@@ -45,6 +45,24 @@ pipelines:
                     arguments:
                       - -c
                       - ./tasks build yaml
+      - test:
+          clean_workspace: true
+          jobs:
+            docker_image:
+              resources:
+                - docker_builder
+              tasks:
+                - fetch:
+                    stage: build
+                    job: docker_image
+                    source: imagerc.yaml
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks itest yaml
   docker-gocd-cli-dojo.json:
     group: gocd
     label_template: "${git[:8]}"
@@ -89,6 +107,24 @@ pipelines:
                     arguments:
                       - -c
                       - ./tasks build json
+      - test:
+          clean_workspace: true
+          jobs:
+            docker_image:
+              resources:
+                - docker_builder
+              tasks:
+                - fetch:
+                    stage: build
+                    job: docker_image
+                    source: imagerc.json
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks itest json
   docker-gocd-cli-dojo.groovy:
     group: gocd
     label_template: "${git[:8]}"
@@ -124,3 +160,21 @@ pipelines:
                     arguments:
                       - -c
                       - ./tasks build groovy
+      - test:
+          clean_workspace: true
+          jobs:
+            docker_image:
+              resources:
+                - docker_builder
+              tasks:
+                - fetch:
+                    stage: build
+                    job: docker_image
+                    source: imagerc.groovy
+                    destination: image/
+                    is_file: true
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks itest groovy
