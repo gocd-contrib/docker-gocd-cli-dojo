@@ -1,0 +1,24 @@
+---
+format_version: 3
+pipelines:
+  "gocd-cli":
+    group: gocd
+    label_template: "${git[:8]}"
+    locking: off
+    materials:
+      git:
+        git: git@github.com:tomzo/gocd-cli.git
+        branch: dojo
+    stages:
+      - build:
+          clean_workspace: true
+          elastic_profile_id: w.c2.m2048.e10
+          artifacts:
+           - build:
+               source: gocd
+               destination:
+          tasks:
+           - exec:
+               command: ide
+               arguments:
+                - ./build.sh
