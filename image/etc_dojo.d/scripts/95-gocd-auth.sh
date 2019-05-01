@@ -27,9 +27,9 @@ if [ -z "${GOCDCLI_SERVER_URL}" ]; then
   echo "GOCDCLI_SERVER_URL cannot be empty"
   exit 5
 fi
-gocd config server-url ${GOCDCLI_SERVER_URL}
+sudo -H -E -u dojo gocd config server-url ${GOCDCLI_SERVER_URL}
 if [ "${GOCDCLI_AUTH_TYPE}" == "basic" ]; then
-  gocd config auth-basic "${GOCDCLI_AUTH_USER}" "${GOCDCLI_AUTH_PASSWORD}"
+  sudo -H -E -u dojo gocd config auth-basic "${GOCDCLI_AUTH_USER}" "${GOCDCLI_AUTH_PASSWORD}"
 else
-  gocd config auth-token "${GOCDCLI_AUTH_TOKEN}"
+  sudo -H -E -u dojo gocd config auth-token "${GOCDCLI_AUTH_TOKEN}"
 fi
