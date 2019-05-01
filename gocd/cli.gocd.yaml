@@ -19,6 +19,6 @@ pipelines:
                destination:
           tasks:
            - exec:
-               command: ide
+               command: dojo
                arguments:
                 - ./build.sh
