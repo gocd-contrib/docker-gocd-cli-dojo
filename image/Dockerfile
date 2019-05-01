@@ -22,6 +22,7 @@ RUN chown dojo:dojo /home/dojo/.profile /home/dojo/.bashrc
 COPY etc_dojo.d/scripts/* /etc/dojo.d/scripts/
 
 COPY gocd /usr/bin/gocd
+RUN chmod +x /usr/bin/gocd
 
 COPY ./libs/ /home/dojo/.gocd/plugins
 RUN chown -R dojo:dojo /home/dojo/.gocd/
