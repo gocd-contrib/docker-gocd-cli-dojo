@@ -79,6 +79,7 @@ case "${command}" in
   build)
       docker_login
       ./tasks build_local $2
+      imagerc_filename="imagerc.$2"
       docker_ops::push "${image_dir}" "${imagerc_filename}"
       ;;
   itest)
