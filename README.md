@@ -37,6 +37,8 @@ gocd configrepo preflight -r my-repo-id --yaml ci.gocd.yaml
 
 Please refer to [gocd-cli](https://github.com/gocd-contrib/gocd-cli) documentation to find out more about usage.
 
+*You may also find this [introductory blog post useful](https://kudulab.io/posts/gocd-preflight-validation/).*
+
 # Configuration
 
 You must configure access to your GoCD in order to execute the preflight checks.
