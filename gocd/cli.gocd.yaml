@@ -12,7 +12,8 @@ pipelines:
     stages:
       - build:
           clean_workspace: true
-          elastic_profile_id: w.c2.m2048.e10
+          resources:
+            - docker
           artifacts:
            - build:
                source: gocd
