@@ -7,8 +7,7 @@ pipelines:
     locking: off
     materials:
       git:
-        git: git@github.com:tomzo/gocd-cli.git
-        branch: dojo
+        git: git@github.com:gocd-contrib/gocd-cli.git
     stages:
       - build:
           clean_workspace: true
